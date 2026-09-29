@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@cortezaproject/corteza-js": "^2024.9.10",
     "vue": "^3.5.42"
   },
   "devDependencies": {
