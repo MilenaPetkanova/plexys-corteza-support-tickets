@@ -5,6 +5,10 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [vue()],
   server: {
+    // TEMPORARY: allows any Host header so a Cloudflare Tunnel's random
+    // trycloudflare.com hostname can reach the dev server. Revert for normal
+    // local dev (see docs/documentation.md "temporary demo deployment").
+    allowedHosts: true,
     proxy: {
       // proxy to Corteza so the SPA, API and auth server share an origin in dev
       // (avoids CORS/cross-site cookie issues, matching how Corteza's own webapps run)
