@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@cortezaproject/corteza-js": "^2024.9.10",
+    "@primeuix/themes": "^3.0.1",
+    "primeicons": "^8.0.2",
+    "primevue": "^5.0.1",
     "vue": "^3.5.42"
   },
   "devDependencies": {
