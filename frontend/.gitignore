@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# holds the real auth client secret; only .env.example is committed
+.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
