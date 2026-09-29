@@ -10,7 +10,7 @@ import Column from 'primevue/column'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { useTickets } from '../composables/useTickets'
-import { fieldValue, statusSeverity, prioritySeverity, formatDate } from '../utils/ticket'
+import { fieldValue, statusSeverity, prioritySeverity, statusIcon, priorityIcon, formatDate } from '../utils/ticket'
 import type { ComposeRecord } from '../services/compose'
 import TicketFormDialog from './TicketFormDialog.vue'
 
@@ -110,18 +110,27 @@ function confirmDelete(ticket: ComposeRecord) {
           </template>
           <template #content>
             <div class="ticket-tags">
-              <Tag :value="fieldValue(ticket, 'Status')" :severity="statusSeverity(fieldValue(ticket, 'Status'))" />
-              <Tag :value="fieldValue(ticket, 'Priority')" :severity="prioritySeverity(fieldValue(ticket, 'Priority'))" />
+              <Tag
+                :value="fieldValue(ticket, 'Status')"
+                :severity="statusSeverity(fieldValue(ticket, 'Status'))"
+                :icon="statusIcon(fieldValue(ticket, 'Status'))"
+              />
+              <Tag
+                :value="fieldValue(ticket, 'Priority')"
+                :severity="prioritySeverity(fieldValue(ticket, 'Priority'))"
+                :icon="priorityIcon(fieldValue(ticket, 'Priority'))"
+                class="priority-tag"
+              />
             </div>
             <p class="ticket-description">{{ fieldValue(ticket, 'Description') || 'No description' }}</p>
             <dl class="ticket-meta">
-              <div v-if="fieldValue(ticket, 'DueDate')">
-                <dt>Due</dt>
-                <dd>{{ formatDate(fieldValue(ticket, 'DueDate')) }}</dd>
-              </div>
               <div>
                 <dt>Created</dt>
                 <dd>{{ formatDate(ticket.createdAt) }}</dd>
+              </div>
+              <div v-if="fieldValue(ticket, 'DueDate')">
+                <dt>Due</dt>
+                <dd>{{ formatDate(fieldValue(ticket, 'DueDate')) }}</dd>
               </div>
             </dl>
           </template>
@@ -156,12 +165,21 @@ function confirmDelete(ticket: ComposeRecord) {
         </Column>
         <Column header="Status">
           <template #body="{ data }">
-            <Tag :value="fieldValue(data, 'Status')" :severity="statusSeverity(fieldValue(data, 'Status'))" />
+            <Tag
+              :value="fieldValue(data, 'Status')"
+              :severity="statusSeverity(fieldValue(data, 'Status'))"
+              :icon="statusIcon(fieldValue(data, 'Status'))"
+            />
           </template>
         </Column>
         <Column header="Priority">
           <template #body="{ data }">
-            <Tag :value="fieldValue(data, 'Priority')" :severity="prioritySeverity(fieldValue(data, 'Priority'))" />
+            <Tag
+              :value="fieldValue(data, 'Priority')"
+              :severity="prioritySeverity(fieldValue(data, 'Priority'))"
+              :icon="priorityIcon(fieldValue(data, 'Priority'))"
+              class="priority-tag"
+            />
           </template>
         </Column>
         <Column header="Due date">
@@ -248,13 +266,9 @@ function confirmDelete(ticket: ComposeRecord) {
   flex-direction: column;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--p-content-border-color, #e5e7eb);
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-.ticket-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-}
 
 .ticket-actions {
   display: flex;
@@ -274,11 +288,17 @@ function confirmDelete(ticket: ComposeRecord) {
   margin-bottom: 0.75rem;
 }
 
+.priority-tag {
+  background-color: transparent !important;
+  border: 1px solid currentColor;
+}
+
 .ticket-description {
   margin: 0 0 1rem;
   color: var(--p-text-muted-color);
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   overflow-wrap: anywhere;

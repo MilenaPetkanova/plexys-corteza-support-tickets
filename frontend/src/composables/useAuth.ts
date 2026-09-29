@@ -27,6 +27,11 @@ const accessToken = ref<string | null>(null)
 const user = ref<CortezaUserInfo | null>(null)
 const isAuthenticated = computed(() => accessToken.value !== null)
 
+// True until the initial redirect-callback/session-restore check completes,
+// so callers can show a neutral loading state instead of flashing the
+// signed-out UI before we know whether a session can be restored.
+const initializing = ref(true)
+
 let refreshTimer: ReturnType<typeof setTimeout> | undefined
 
 function login(): void {
@@ -156,14 +161,29 @@ function accessTokenFn(): string | undefined {
   return accessToken.value ?? undefined
 }
 
+// Runs once on app boot: completes an in-flight OAuth2 redirect, or restores
+// a session from the stored refresh token. Always clears `initializing`.
+async function initAuth(): Promise<void> {
+  try {
+    const handledCode = await handleRedirectCallback()
+    if (!handledCode) {
+      await tryRestoreSession()
+    }
+  } finally {
+    initializing.value = false
+  }
+}
+
 export function useAuth() {
   return {
     isAuthenticated,
+    initializing,
     user,
     login,
     logout,
     handleRedirectCallback,
     tryRestoreSession,
+    initAuth,
     accessTokenFn,
   }
 }
