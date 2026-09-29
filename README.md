@@ -4,6 +4,11 @@ A Vue 3 single-page application that manages Corteza `Support Ticket` records â€
 Plexys front-end/full-stack homework. See [docs/documentation.md](docs/documentation.md) for the
 full architecture, design decisions, user guide and admin guide (source for the submitted PDF).
 
+> **Live demo (temporary):** https://penn-peas-described-aud.trycloudflare.com â€” a free Cloudflare
+> quick tunnel to the developer's local dev server + Corteza instance. Only reachable while that
+> machine, Docker, the dev server and the tunnel are all running; not a persistent deployment. If
+> the link is down, use the local setup below instead.
+
 ## Stack
 
 - Corteza `2024.9` (Docker: server + PostgreSQL 15)

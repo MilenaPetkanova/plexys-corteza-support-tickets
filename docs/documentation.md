@@ -15,6 +15,13 @@ delete), authenticating as the real signed-in Corteza user via OAuth2 `authoriza
 Corteza's own audit fields (`createdBy`, `updatedBy`, `ownedBy`) and RBAC stay meaningful with no
 custom plumbing.
 
+> **Live demo (temporary):** the app can be exposed with a free Cloudflare quick tunnel
+> (`cloudflared tunnel --url http://localhost:5175`) pointed at the local Vite dev server, which
+> already proxies `/api` and `/auth` to the local Corteza instance — no separate tunnel or CORS
+> setup needed for Corteza itself. This is tied to the developer's machine staying on (dev server,
+> Docker, and tunnel all running) and is not a persistent deployment — see "Production hosting"
+> on Page 5 for the real deployment plan.
+
 ### Stack
 
 | Layer | Choice | Why |
@@ -274,7 +281,11 @@ password policy, etc.) — left at Corteza's documented defaults for this exerci
    `/auth/*` server-side to the real Corteza origin — the same role Vite's dev proxy plays now,
    solving CORS without touching Corteza). This requires Corteza itself to be reachable from the
    internet (a VPS/hosted instance), which is a separate, larger piece of infrastructure than
-   fits this task's budget — noted here rather than rushed.
+   fits this task's budget — noted here rather than rushed. For short-lived demos we instead used
+   a free Cloudflare quick tunnel (`cloudflared tunnel --url http://localhost:<port>`) aimed at the
+   Vite dev server itself, requiring only `server.allowedHosts: true` in `vite.config.ts` (Vite
+   rejects unrecognised Host headers by default) and matching the Auth Client's redirect URI to
+   the tunnel's random hostname — no Corteza-side changes at all.
 3. **Thin BFF for the client secret** — remove the "secret in the bundle" limitation by proxying
    the token exchange through a minimal server-side function.
 4. **Automated tests** — component tests for the form dialog's validation, and an integration test
