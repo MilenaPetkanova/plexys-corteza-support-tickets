@@ -151,11 +151,9 @@ async function fetchUserInfo(): Promise<void> {
 
 // Passed to corteza-js API clients so every request carries the signed-in
 // user's own bearer token (not an impersonated/service token).
-async function accessTokenFn(): Promise<string> {
-  if (!accessToken.value) {
-    throw new Error('not authenticated')
-  }
-  return accessToken.value
+// Sync, per corteza-js's Ctor.accessTokenFn: () => string | undefined.
+function accessTokenFn(): string | undefined {
+  return accessToken.value ?? undefined
 }
 
 export function useAuth() {
