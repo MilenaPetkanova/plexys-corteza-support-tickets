@@ -1,5 +1,12 @@
 import { ref } from 'vue'
-import { listTickets, type ComposeRecord } from '../services/compose'
+import {
+  listTickets,
+  createTicket,
+  updateTicket,
+  deleteTicket,
+  type ComposeRecord,
+  type RawValue,
+} from '../services/compose'
 
 const tickets = ref<ComposeRecord[]>([])
 const loading = ref(false)
@@ -17,6 +24,21 @@ async function refresh(): Promise<void> {
   }
 }
 
+async function create(values: RawValue[]): Promise<void> {
+  await createTicket(values)
+  await refresh()
+}
+
+async function update(recordID: string, values: RawValue[]): Promise<void> {
+  await updateTicket(recordID, values)
+  await refresh()
+}
+
+async function remove(recordID: string): Promise<void> {
+  await deleteTicket(recordID)
+  await refresh()
+}
+
 export function useTickets() {
-  return { tickets, loading, error, refresh }
+  return { tickets, loading, error, refresh, create, update, remove }
 }

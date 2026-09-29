@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import Button from 'primevue/button'
+import Toast from 'primevue/toast'
+import ConfirmDialog from 'primevue/confirmdialog'
 import { useAuth } from './composables/useAuth'
 import { useTickets } from './composables/useTickets'
 import AppHeader from './components/AppHeader.vue'
@@ -22,6 +24,8 @@ watch(isAuthenticated, (signedIn) => {
 </script>
 
 <template>
+  <Toast />
+  <ConfirmDialog />
   <template v-if="isAuthenticated">
     <AppHeader :user-label="user?.preferred_username ?? user?.name ?? user?.sub" @sign-out="logout" />
     <main>

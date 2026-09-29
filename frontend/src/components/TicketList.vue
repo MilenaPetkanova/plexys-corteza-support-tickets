@@ -7,16 +7,60 @@ import SelectButton from 'primevue/selectbutton'
 import ProgressSpinner from 'primevue/progressspinner'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
 import { useTickets } from '../composables/useTickets'
 import { fieldValue, statusSeverity, prioritySeverity, formatDate } from '../utils/ticket'
+import type { ComposeRecord } from '../services/compose'
+import TicketFormDialog from './TicketFormDialog.vue'
 
-const { tickets, loading, error, refresh } = useTickets()
+const { tickets, loading, error, refresh, remove } = useTickets()
+const confirm = useConfirm()
+const toast = useToast()
 
 const viewOptions = [
   { label: 'Cards', value: 'cards', icon: 'pi pi-th-large' },
   { label: 'Table', value: 'table', icon: 'pi pi-table' },
 ]
 const view = ref<'cards' | 'table'>('cards')
+
+const formVisible = ref(false)
+const editingTicket = ref<ComposeRecord | null>(null)
+
+function openCreate() {
+  editingTicket.value = null
+  formVisible.value = true
+}
+
+function openEdit(ticket: ComposeRecord) {
+  editingTicket.value = ticket
+  formVisible.value = true
+}
+
+function confirmDelete(ticket: ComposeRecord) {
+  confirm.require({
+    header: 'Delete ticket',
+    message: `Delete "${fieldValue(ticket, 'Subject')}"? This cannot be undone.`,
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: 'Delete',
+    acceptProps: { severity: 'danger' },
+    rejectLabel: 'Cancel',
+    rejectProps: { severity: 'secondary', text: true },
+    accept: async () => {
+      try {
+        await remove(ticket.recordID)
+        toast.add({ severity: 'success', summary: 'Ticket deleted', life: 3000 })
+      } catch (err) {
+        toast.add({
+          severity: 'error',
+          summary: 'Could not delete ticket',
+          detail: err instanceof Error ? err.message : String(err),
+          life: 5000,
+        })
+      }
+    },
+  })
+}
 </script>
 
 <template>
@@ -44,8 +88,11 @@ const view = ref<'cards' | 'table'>('cards')
           :loading="loading"
           @click="refresh"
         />
+        <Button label="New ticket" icon="pi pi-plus" @click="openCreate" />
       </div>
     </header>
+
+    <TicketFormDialog v-model:visible="formVisible" :ticket="editingTicket" />
 
     <p v-if="error" role="alert" class="tickets-error">{{ error }}</p>
 
@@ -78,6 +125,26 @@ const view = ref<'cards' | 'table'>('cards')
               </div>
             </dl>
           </template>
+          <template #footer>
+            <div class="ticket-actions">
+              <Button
+                icon="pi pi-pencil"
+                label="Edit"
+                severity="secondary"
+                text
+                :aria-label="`Edit ${fieldValue(ticket, 'Subject')}`"
+                @click="openEdit(ticket)"
+              />
+              <Button
+                icon="pi pi-trash"
+                label="Delete"
+                severity="danger"
+                text
+                :aria-label="`Delete ${fieldValue(ticket, 'Subject')}`"
+                @click="confirmDelete(ticket)"
+              />
+            </div>
+          </template>
         </Card>
       </li>
     </ul>
@@ -102,6 +169,26 @@ const view = ref<'cards' | 'table'>('cards')
         </Column>
         <Column header="Created">
           <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
+        </Column>
+        <Column header="Actions">
+          <template #body="{ data }">
+            <div class="ticket-actions">
+              <Button
+                icon="pi pi-pencil"
+                severity="secondary"
+                text
+                :aria-label="`Edit ${fieldValue(data, 'Subject')}`"
+                @click="openEdit(data)"
+              />
+              <Button
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                :aria-label="`Delete ${fieldValue(data, 'Subject')}`"
+                @click="confirmDelete(data)"
+              />
+            </div>
+          </template>
         </Column>
       </DataTable>
     </div>
@@ -167,6 +254,12 @@ const view = ref<'cards' | 'table'>('cards')
 .ticket-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
   transform: translateY(-1px);
+}
+
+.ticket-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
 }
 
 .ticket-subject {
