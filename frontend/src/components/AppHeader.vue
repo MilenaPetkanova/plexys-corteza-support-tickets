@@ -4,10 +4,12 @@ import Button from 'primevue/button'
 import Avatar from 'primevue/avatar'
 
 defineProps<{
+  authenticated: boolean
   userLabel?: string
 }>()
 
 defineEmits<{
+  (e: 'sign-in'): void
   (e: 'sign-out'): void
 }>()
 </script>
@@ -19,11 +21,12 @@ defineEmits<{
       <span class="app-subtitle">Support Tickets</span>
     </template>
     <template #end>
-      <div class="app-user">
+      <div v-if="authenticated" class="app-user">
         <Avatar :label="userLabel?.[0]?.toUpperCase()" shape="circle" />
         <span class="app-user-label">{{ userLabel }}</span>
         <Button label="Sign out" icon="pi pi-sign-out" severity="secondary" text @click="$emit('sign-out')" />
       </div>
+      <Button v-else label="Sign in with Corteza" icon="pi pi-sign-in" @click="$emit('sign-in')" />
     </template>
   </Toolbar>
 </template>

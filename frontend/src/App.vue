@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
-import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -35,15 +34,21 @@ function closeConfirmOnMaskClick(event: MouseEvent) {
   <div v-if="initializing" class="signin-screen" aria-live="polite" aria-busy="true">
     <ProgressSpinner aria-label="Loading" />
   </div>
-  <template v-else-if="isAuthenticated">
-    <AppHeader :user-label="user?.preferred_username ?? user?.name ?? user?.sub" @sign-out="logout" />
+  <template v-else>
+    <AppHeader
+      :authenticated="isAuthenticated"
+      :user-label="user?.preferred_username ?? user?.name ?? user?.sub"
+      @sign-in="login"
+      @sign-out="logout"
+    />
     <main id="main-content">
-      <TicketList />
+      <TicketList v-if="isAuthenticated" />
+      <div v-else class="signed-out-message">
+        <i class="pi pi-lock" aria-hidden="true" />
+        <p>Sign in with your Corteza account to view and manage support tickets.</p>
+      </div>
     </main>
   </template>
-  <main v-else id="main-content" class="signin-screen">
-    <Button label="Sign in with Corteza" @click="login" />
-  </main>
 </template>
 
 <style scoped>
@@ -51,6 +56,20 @@ main {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 1.5rem 1.5rem;
+}
+
+.signed-out-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 4rem 1rem;
+  color: var(--p-text-muted-color);
+  text-align: center;
+}
+
+.signed-out-message .pi-lock {
+  font-size: 2rem;
 }
 
 @media (max-width: 768px) {
