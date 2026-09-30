@@ -10,10 +10,7 @@ import Message from 'primevue/message'
 import { useToast } from 'primevue/usetoast'
 import { useTickets } from '../composables/useTickets'
 import type { ComposeRecord } from '../services/compose'
-import { fieldValue as getFieldValue } from '../utils/ticket'
-
-const STATUS_OPTIONS = ['New', 'In Progress', 'Resolved', 'Closed']
-const PRIORITY_OPTIONS = ['Low', 'Medium', 'High', 'Urgent']
+import { fieldValue as getFieldValue, STATUS_OPTIONS, PRIORITY_OPTIONS } from '../utils/ticket'
 
 const props = defineProps<{
   visible: boolean
@@ -99,6 +96,7 @@ async function save() {
   <Dialog
     :visible="visible"
     modal
+    dismissable-mask
     :header="ticket ? 'Edit ticket' : 'New ticket'"
     :style="{ width: '32rem', maxWidth: '95vw' }"
     @update:visible="(v: boolean) => !v && close()"

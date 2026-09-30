@@ -6,11 +6,13 @@ import ConfirmDialog from 'primevue/confirmdialog'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useAuth } from './composables/useAuth'
 import { useTickets } from './composables/useTickets'
+import { useConfirm } from 'primevue/useconfirm'
 import AppHeader from './components/AppHeader.vue'
 import TicketList from './components/TicketList.vue'
 
 const { isAuthenticated, initializing, user, login, logout, initAuth } = useAuth()
 const { refresh } = useTickets()
+const confirm = useConfirm()
 
 onMounted(() => {
   initAuth()
@@ -19,11 +21,16 @@ onMounted(() => {
 watch(isAuthenticated, (signedIn) => {
   if (signedIn) refresh()
 }, { immediate: true })
+
+// ConfirmDialog has no dismissableMask prop, so wire mask-click dismissal manually.
+function closeConfirmOnMaskClick(event: MouseEvent) {
+  if (event.target === event.currentTarget) confirm.close()
+}
 </script>
 
 <template>
   <Toast />
-  <ConfirmDialog />
+  <ConfirmDialog :pt="{ mask: { onClick: closeConfirmOnMaskClick } }" />
   <a href="#main-content" class="skip-link">Skip to main content</a>
   <div v-if="initializing" class="signin-screen" aria-live="polite" aria-busy="true">
     <ProgressSpinner aria-label="Loading" />
@@ -41,9 +48,15 @@ watch(isAuthenticated, (signedIn) => {
 
 <style scoped>
 main {
-  max-width: 1100px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 1.5rem 1.5rem;
+}
+
+@media (max-width: 768px) {
+  main {
+    padding: 0 0.5rem 2rem;
+  }
 }
 
 .signin-screen {

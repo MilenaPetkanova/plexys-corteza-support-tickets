@@ -1,5 +1,8 @@
 import type { ComposeRecord } from '../services/compose'
 
+export const STATUS_OPTIONS = ['New', 'In Progress', 'Resolved', 'Closed']
+export const PRIORITY_OPTIONS = ['Low', 'Medium', 'High', 'Urgent']
+
 // Field handles as created in the Compose builder UI (System > Compose).
 export function fieldValue(record: ComposeRecord, name: string): string | undefined {
   return record.values.find((v) => v.name === name)?.value
@@ -24,8 +27,8 @@ const PRIORITY_SEVERITY: Record<string, 'secondary' | 'info' | 'warn' | 'danger'
 const STATUS_ICON: Record<string, string> = {
   New: 'pi pi-circle',
   'In Progress': 'pi pi-spinner',
-  Resolved: 'pi pi-check-circle',
-  Closed: 'pi pi-times-circle',
+  Resolved: 'pi pi-check',
+  Closed: 'pi pi-times',
 }
 
 const PRIORITY_ICON: Record<string, string> = {
