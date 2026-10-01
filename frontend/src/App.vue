@@ -31,39 +31,67 @@ function closeConfirmOnMaskClick(event: MouseEvent) {
   <Toast />
   <ConfirmDialog :pt="{ mask: { onClick: closeConfirmOnMaskClick } }" />
   <a href="#main-content" class="skip-link">Skip to main content</a>
-  <div v-if="initializing" class="signin-screen" aria-live="polite" aria-busy="true">
-    <ProgressSpinner aria-label="Loading" />
-  </div>
-  <template v-else>
-    <AppHeader
-      :authenticated="isAuthenticated"
-      :user-label="user?.preferred_username ?? user?.name ?? user?.sub"
-      @sign-in="login"
-      @sign-out="logout"
-    />
-    <main id="main-content">
-      <TicketList v-if="isAuthenticated" />
-      <div v-else class="signed-out-message">
-        <i class="pi pi-lock" aria-hidden="true" />
-        <p>Sign in with your Corteza account to view and manage support tickets.</p>
+  <div class="app-shell">
+    <Transition name="fade" mode="out-in">
+      <div v-if="initializing" key="initializing" class="centered-fill" aria-live="polite" aria-busy="true">
+        <ProgressSpinner aria-label="Loading" />
       </div>
-    </main>
-  </template>
+      <div v-else key="app" class="app-shell-content">
+        <AppHeader
+          :authenticated="isAuthenticated"
+          :user-label="user?.preferred_username ?? user?.name ?? user?.sub"
+          @sign-in="login"
+          @sign-out="logout"
+        />
+        <main id="main-content" class="app-main">
+          <Transition name="fade" mode="out-in">
+            <TicketList v-if="isAuthenticated" key="tickets" />
+            <div v-else key="signed-out" class="signed-out-message centered-fill">
+              <i class="pi pi-lock" aria-hidden="true" />
+              <p>Sign in with your Corteza account to view and manage support tickets.</p>
+            </div>
+          </Transition>
+        </main>
+      </div>
+    </Transition>
+  </div>
 </template>
 
 <style scoped>
-main {
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 1.5rem 1.5rem;
 }
 
-.signed-out-message {
+.centered-fill {
+  flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
+}
+
+.signed-out-message {
+  flex-direction: column;
   gap: 0.75rem;
-  padding: 4rem 1rem;
   color: var(--p-text-muted-color);
   text-align: center;
 }
@@ -73,16 +101,9 @@ main {
 }
 
 @media (max-width: 768px) {
-  main {
+  .app-main {
     padding: 0 0.5rem 2rem;
   }
-}
-
-.signin-screen {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .skip-link {

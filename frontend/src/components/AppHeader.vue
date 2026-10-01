@@ -18,7 +18,7 @@ defineEmits<{
   <Toolbar class="app-header">
     <template #start>
       <span class="app-title">Plexys Homework</span>
-      <span class="app-subtitle">Support Tickets</span>
+      <!-- <span class="app-subtitle">Support Tickets</span> -->
     </template>
     <template #end>
       <div v-if="authenticated" class="app-user">

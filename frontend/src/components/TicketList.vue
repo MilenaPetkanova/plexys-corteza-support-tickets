@@ -106,7 +106,7 @@ function confirmDelete(ticket: ComposeRecord) {
 </script>
 
 <template>
-  <section aria-labelledby="tickets-heading">
+  <section aria-labelledby="tickets-heading" class="tickets-page">
     <header class="tickets-header">
       <h1 id="tickets-heading">Support Tickets</h1>
       <div class="tickets-actions">
@@ -137,160 +137,185 @@ function confirmDelete(ticket: ComposeRecord) {
 
     <TicketFormDialog v-model:visible="formVisible" :ticket="editingTicket" />
 
-    <p v-if="error" role="alert" class="tickets-error">{{ error }}</p>
+    <div class="tickets-body">
+      <Transition name="fade" mode="out-in">
+        <p v-if="error" key="error" role="alert" class="tickets-error">{{ error }}</p>
 
-    <div v-else-if="loading && tickets.length === 0" class="tickets-loading">
-      <ProgressSpinner aria-label="Loading tickets" />
-    </div>
+        <div v-else-if="loading && tickets.length === 0" key="loading" class="tickets-loading">
+          <ProgressSpinner aria-label="Loading tickets" />
+        </div>
 
-    <p v-else-if="tickets.length === 0">No support tickets yet.</p>
+        <p v-else-if="tickets.length === 0" key="empty">No support tickets yet.</p>
 
-    <ul v-else-if="view === 'cards'" class="tickets-grid" aria-label="Support tickets">
-      <li v-for="ticket in tickets" :key="ticket.recordID">
-        <Card class="ticket-card">
-          <template #title>
-            <div class="ticket-card-header">
-              <span class="ticket-subject">{{ fieldValue(ticket, 'Subject') }}</span>
-              <Tag
-                :value="fieldValue(ticket, 'Status')"
-                :severity="statusSeverity(fieldValue(ticket, 'Status'))"
-                :icon="statusIcon(fieldValue(ticket, 'Status'))"
-                class="status-tag"
-              />
-            </div>
-          </template>
-          <template #content>
-            <p class="ticket-description">{{ fieldValue(ticket, 'Description') || 'No description' }}</p>
-            <dl class="ticket-meta">
-              <Tag
-                :value="fieldValue(ticket, 'Priority')"
-                :severity="prioritySeverity(fieldValue(ticket, 'Priority'))"
-                :icon="priorityIcon(fieldValue(ticket, 'Priority'))"
-                rounded
-                class="priority-tag"
-              />
-              <div>
-                <dd>Created: {{ formatDate(ticket.createdAt) }}</dd>
-                
-              </div>
-              <div v-if="fieldValue(ticket, 'DueDate')">
-                <dd>Due: {{ formatDate(fieldValue(ticket, 'DueDate')) }}</dd>
-              </div>
-            </dl>
-          </template>
-          <template #footer>
-            <div class="ticket-actions">
-              <Button
-                label="Delete"
-                severity="secondary"
-                text
-                :aria-label="`Delete ${fieldValue(ticket, 'Subject')}`"
-                @click="confirmDelete(ticket)"
-              />
-              <Button
-                icon="pi pi-pencil"
-                label="Edit"
-                severity="contrast"
-                outlined
-                :aria-label="`Edit ${fieldValue(ticket, 'Subject')}`"
-                @click="openEdit(ticket)"
-              />
-            </div>
-          </template>
-        </Card>
-      </li>
-    </ul>
+        <TransitionGroup
+          v-else-if="view === 'cards'"
+          key="cards"
+          tag="ul"
+          name="fade"
+          class="tickets-grid"
+          aria-label="Support tickets"
+        >
+          <li v-for="ticket in tickets" :key="ticket.recordID">
+            <Card class="ticket-card">
+              <template #title>
+                <div class="ticket-card-header">
+                  <span class="ticket-subject">{{ fieldValue(ticket, 'Subject') }}</span>
+                  <Tag
+                    :value="fieldValue(ticket, 'Status')"
+                    :severity="statusSeverity(fieldValue(ticket, 'Status'))"
+                    :icon="statusIcon(fieldValue(ticket, 'Status'))"
+                    class="status-tag"
+                  />
+                </div>
+              </template>
+              <template #content>
+                <p class="ticket-description">{{ fieldValue(ticket, 'Description') || 'No description' }}</p>
+                <dl class="ticket-meta">
+                  <Tag
+                    :value="fieldValue(ticket, 'Priority')"
+                    :severity="prioritySeverity(fieldValue(ticket, 'Priority'))"
+                    :icon="priorityIcon(fieldValue(ticket, 'Priority'))"
+                    rounded
+                    class="priority-tag"
+                  />
+                  <div>
+                    <dd>Created: {{ formatDate(ticket.createdAt) }}</dd>
+                    
+                  </div>
+                  <div v-if="fieldValue(ticket, 'DueDate')">
+                    <dd>Due: {{ formatDate(fieldValue(ticket, 'DueDate')) }}</dd>
+                  </div>
+                </dl>
+              </template>
+              <template #footer>
+                <div class="ticket-actions">
+                  <Button
+                    label="Delete"
+                    severity="secondary"
+                    text
+                    :aria-label="`Delete ${fieldValue(ticket, 'Subject')}`"
+                    @click="confirmDelete(ticket)"
+                  />
+                  <Button
+                    icon="pi pi-pencil"
+                    label="Edit"
+                    severity="contrast"
+                    outlined
+                    :aria-label="`Edit ${fieldValue(ticket, 'Subject')}`"
+                    @click="openEdit(ticket)"
+                  />
+                </div>
+              </template>
+            </Card>
+          </li>
+        </TransitionGroup>
 
-    <div v-else class="table-scroll">
-      <DataTable
-        :value="rows"
-        data-key="recordID"
-        striped-rows
-        v-model:filters="filters"
-        filter-display="row"
-        :global-filter-fields="['subject', 'description']"
-        row-hover
-        class="tickets-table"
-        @row-click="onRowClick"
-      >
-        <template #header>
-          <IconField class="tickets-search">
-            <InputIcon class="pi pi-search" />
-            <InputText v-model="filters.global.value" placeholder="Search tickets..." />
-          </IconField>
-        </template>
-        <template #empty>No tickets match your filters.</template>
-        <Column field="subject" header="Subject" :show-filter-menu="false" style="min-width: 14rem">
-          <template #body="{ data }">{{ data.subject }}</template>
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText
-              v-model="filterModel.value"
-              type="text"
-              placeholder="Search subject"
-              @input="filterCallback()"
-            />
-          </template>
-        </Column>
-        <Column field="status" header="Status" :show-filter-menu="false" style="min-width: 12rem">
-          <template #body="{ data }">
-            <Tag :value="data.status" :severity="statusSeverity(data.status)" :icon="statusIcon(data.status)" />
-          </template>
-          <template #filter="{ filterModel, filterCallback }">
-            <Select
-              v-model="filterModel.value"
-              :options="STATUS_OPTIONS"
-              placeholder="Any"
-              show-clear
-              @change="filterCallback()"
-            />
-          </template>
-        </Column>
-        <Column field="priority" header="Priority" :show-filter-menu="false" style="min-width: 12rem">
-          <template #body="{ data }">
-            <Tag :value="data.priority" :severity="prioritySeverity(data.priority)" rounded class="priority-tag" />
-          </template>
-          <template #filter="{ filterModel, filterCallback }">
-            <Select
-              v-model="filterModel.value"
-              :options="PRIORITY_OPTIONS"
-              placeholder="Any"
-              show-clear
-              @change="filterCallback()"
-            />
-          </template>
-        </Column>
-        <Column header="Due date" style="min-width: 10rem">
-          <template #body="{ data }">{{ formatDate(data.dueDate) ?? '—' }}</template>
-        </Column>
-        <Column header="Created" style="min-width: 10rem">
-          <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
-        </Column>
-        <Column header="Actions" style="min-width: 9rem">
-          <template #body="{ data }">
-            <div class="ticket-actions" @click.stop>
-              <Button
-                icon="pi pi-pencil"
-                severity="secondary"
-                text
-                :aria-label="`Edit ${data.subject}`"
-                @click="openEdit(data.record)"
-              />
-              <Button
-                icon="pi pi-trash"
-                severity="danger"
-                text
-                :aria-label="`Delete ${data.subject}`"
-                @click="confirmDelete(data.record)"
-              />
-            </div>
-          </template>
-        </Column>
-      </DataTable>
+        <div v-else key="table" class="table-scroll">
+          <DataTable
+            :value="rows"
+            data-key="recordID"
+            striped-rows
+            v-model:filters="filters"
+            filter-display="row"
+            :global-filter-fields="['subject', 'description']"
+            row-hover
+            class="tickets-table"
+            @row-click="onRowClick"
+          >
+            <template #header>
+              <IconField class="tickets-search">
+                <InputIcon class="pi pi-search" />
+                <InputText v-model="filters.global.value" placeholder="Search tickets..." />
+              </IconField>
+            </template>
+            <template #empty>No tickets match your filters.</template>
+            <Column field="subject" header="Subject" :show-filter-menu="false" style="min-width: 14rem">
+              <template #body="{ data }">{{ data.subject }}</template>
+              <template #filter="{ filterModel, filterCallback }">
+                <InputText
+                  v-model="filterModel.value"
+                  type="text"
+                  placeholder="Search subject"
+                  @input="filterCallback()"
+                />
+              </template>
+            </Column>
+            <Column field="status" header="Status" :show-filter-menu="false" style="min-width: 12rem">
+              <template #body="{ data }">
+                <Tag :value="data.status" :severity="statusSeverity(data.status)" :icon="statusIcon(data.status)" />
+              </template>
+              <template #filter="{ filterModel, filterCallback }">
+                <Select
+                  v-model="filterModel.value"
+                  :options="STATUS_OPTIONS"
+                  placeholder="Any"
+                  show-clear
+                  @change="filterCallback()"
+                />
+              </template>
+            </Column>
+            <Column field="priority" header="Priority" :show-filter-menu="false" style="min-width: 12rem">
+              <template #body="{ data }">
+                <Tag :value="data.priority" :severity="prioritySeverity(data.priority)" rounded class="priority-tag" />
+              </template>
+              <template #filter="{ filterModel, filterCallback }">
+                <Select
+                  v-model="filterModel.value"
+                  :options="PRIORITY_OPTIONS"
+                  placeholder="Any"
+                  show-clear
+                  @change="filterCallback()"
+                />
+              </template>
+            </Column>
+            <Column header="Due date" style="min-width: 10rem">
+              <template #body="{ data }">{{ formatDate(data.dueDate) ?? '—' }}</template>
+            </Column>
+            <Column header="Created" style="min-width: 10rem">
+              <template #body="{ data }">{{ formatDate(data.createdAt) }}</template>
+            </Column>
+            <Column header="Actions" style="min-width: 9rem">
+              <template #body="{ data }">
+                <div class="ticket-actions" @click.stop>
+                  <Button
+                    icon="pi pi-pencil"
+                    severity="secondary"
+                    text
+                    :aria-label="`Edit ${data.subject}`"
+                    @click="openEdit(data.record)"
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    severity="danger"
+                    text
+                    :aria-label="`Delete ${data.subject}`"
+                    @click="confirmDelete(data.record)"
+                  />
+                </div>
+              </template>
+            </Column>
+          </DataTable>
+        </div>
+      </Transition>
     </div>
   </section>
 </template>
 
 <style scoped>
+.tickets-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.tickets-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .tickets-header {
   display: flex;
   flex-wrap: wrap;
@@ -325,8 +350,9 @@ function confirmDelete(ticket: ComposeRecord) {
 
 .tickets-loading {
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 3rem;
+  flex: 1;
 }
 
 .tickets-grid {
